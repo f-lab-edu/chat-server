@@ -1,6 +1,7 @@
 package com.example.chatserver.controller;
 
-import com.example.chatserver.model.ChatMessage;
+import com.example.chatserver.dto.ChatMessageDto;
+import com.example.chatserver.dto.ChatRoomDto;
 import com.example.chatserver.model.ChatRoom;
 import com.example.chatserver.service.ChatService;
 import java.util.List;
@@ -24,12 +25,12 @@ public class ChatController {
     }
 
     @GetMapping("/rooms")
-    public List<ChatRoom> getAllChatRooms() {
+    public List<ChatRoomDto> getAllChatRooms() {
         return chatService.getAllChatRooms();
     }
 
     @GetMapping("/messages")
-    public List<ChatMessage> getMessages(@RequestParam Long chatRoomId) {
+    public List<ChatMessageDto> getMessages(@RequestParam Long chatRoomId) {
         return chatService.getMessages(chatRoomId);
     }
 }

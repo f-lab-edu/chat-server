@@ -1,12 +1,14 @@
 package com.example.chatserver.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.chatserver.dto.ChatDto;
+import com.example.chatserver.dto.ChatMessageDto;
+import com.example.chatserver.dto.ChatRoomDto;
 import com.example.chatserver.dto.MessageType;
 import com.example.chatserver.model.ChatMessage;
 import com.example.chatserver.model.ChatRoom;
@@ -65,11 +67,11 @@ public class ChatServiceTest {
         ChatMessage chatMessage2 = ChatMessage.builder().message("Message 2").build();
         List<ChatMessage> expectedMessages = List.of(chatMessage1, chatMessage2);
 
-        when(chatMessageRepository.findTop100ByChatRoomIdOrderByCreatedAtDesc(chatRoomId))
+        when(chatMessageRepository.findTopMessagesByChatRoomId(chatRoomId))
             .thenReturn(expectedMessages);
 
         // Act
-        List<ChatMessage> actualMessages = chatService.getMessages(chatRoomId);
+        List<ChatMessageDto> actualMessages = chatService.getMessages(chatRoomId);
 
         // Assert
         assertEquals(expectedMessages, actualMessages);
@@ -102,7 +104,7 @@ public class ChatServiceTest {
         when(chatRoomRepository.findAll()).thenReturn(expectedChatRooms);
 
         // Act
-        List<ChatRoom> actualChatRooms = chatService.getAllChatRooms();
+        List<ChatRoomDto> actualChatRooms = chatService.getAllChatRooms();
 
         // Assert
         assertEquals(expectedChatRooms, actualChatRooms);

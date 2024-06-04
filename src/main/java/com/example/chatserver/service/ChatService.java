@@ -1,12 +1,15 @@
 package com.example.chatserver.service;
 
 import com.example.chatserver.dto.ChatDto;
+import com.example.chatserver.dto.ChatMessageDto;
+import com.example.chatserver.dto.ChatRoomDto;
 import com.example.chatserver.model.ChatMessage;
 import com.example.chatserver.model.ChatRoom;
 import com.example.chatserver.repository.ChatMessageRepository;
 import com.example.chatserver.repository.ChatRoomRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +35,10 @@ public class ChatService {
         chatMessageRepository.save(chatMessage);
     }
 
-    public List<ChatMessage> getMessages(Long chatRoomId) {
-        return chatMessageRepository.findTop100ByChatRoomIdOrderByCreatedAtDesc(chatRoomId);
+    public List<ChatMessageDto> getMessages(Long chatRoomId) {
+        return chatMessageRepository.findTopMessagesByChatRoomId(chatRoomId)
+            .stream().map(ChatMessageDto::from)
+            .collect(Collectors.toList());
     }
 
     public ChatRoom createChatRoom(String name) {
@@ -42,7 +47,9 @@ public class ChatService {
         return chatRoomRepository.save(chatRoom);
     }
 
-    public List<ChatRoom> getAllChatRooms() {
-        return chatRoomRepository.findAll();
+    public List<ChatRoomDto> getAllChatRooms() {
+        return chatRoomRepository.findAll().stream()
+            .map(ChatRoomDto::from)
+            .collect(Collectors.toList());
     }
 }
