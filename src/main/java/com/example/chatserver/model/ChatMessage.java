@@ -1,6 +1,6 @@
 package com.example.chatserver.model;
 
-import com.example.chatserver.dto.WebSocketMessageType;
+import com.example.chatserver.dto.MessageType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -34,7 +34,7 @@ public class ChatMessage extends BaseEntity{
     private ChatRoom chatRoom;
 
     @Enumerated(EnumType.STRING)
-    private WebSocketMessageType type;
+    private MessageType type;
 
     private String sender;
 

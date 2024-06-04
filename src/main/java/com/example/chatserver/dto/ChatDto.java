@@ -1,5 +1,7 @@
 package com.example.chatserver.dto;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,11 +14,9 @@ import lombok.ToString;
 @Setter
 @ToString
 public class ChatDto {
+    @Enumerated(EnumType.STRING)
+    private MessageType type;
     private Long chatRoomId;
     private String username;
     private String message;
-
-    public void setMessage(String message){
-        this.message = message;
-    }
 }

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.chatserver.dto.ChatDto;
-import com.example.chatserver.dto.WebSocketMessageType;
+import com.example.chatserver.dto.MessageType;
 import com.example.chatserver.model.ChatMessage;
 import com.example.chatserver.model.ChatRoom;
 import com.example.chatserver.repository.ChatMessageRepository;
@@ -43,8 +43,7 @@ public class ChatServiceTest {
         Long chatRoomId = 1L;
         String username = "user1";
         String message = "Hello, world!";
-        WebSocketMessageType type = WebSocketMessageType.TALK;
-        ChatDto chatDto = new ChatDto(chatRoomId, username, message);
+        ChatDto chatDto = new ChatDto(MessageType.TALK,chatRoomId, username, message);
 
         ChatRoom chatRoom = new ChatRoom();
         ChatRoom.builder().id(chatRoomId).build();
@@ -52,7 +51,7 @@ public class ChatServiceTest {
         when(chatRoomRepository.findById(chatRoomId)).thenReturn(Optional.of(chatRoom));
 
         // Act
-        chatService.saveMessage(type, chatDto);
+        chatService.saveMessage(chatDto);
 
         // Assert
         verify(chatMessageRepository, times(1)).save(any());
@@ -66,7 +65,8 @@ public class ChatServiceTest {
         ChatMessage chatMessage2 = ChatMessage.builder().message("Message 2").build();
         List<ChatMessage> expectedMessages = List.of(chatMessage1, chatMessage2);
 
-        when(chatMessageRepository.findByChatRoomId(chatRoomId)).thenReturn(expectedMessages);
+        when(chatMessageRepository.findTop100ByChatRoomIdOrderByCreatedAtDesc(chatRoomId))
+            .thenReturn(expectedMessages);
 
         // Act
         List<ChatMessage> actualMessages = chatService.getMessages(chatRoomId);

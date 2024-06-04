@@ -3,7 +3,7 @@ package com.example.chatserver.dto;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum WebSocketMessageType {
+public enum MessageType {
     ENTER("ENTER"),
     TALK("TALK"),
     EXIT("EXIT");

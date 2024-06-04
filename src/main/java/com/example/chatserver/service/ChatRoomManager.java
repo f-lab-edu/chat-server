@@ -1,8 +1,7 @@
 package com.example.chatserver.service;
 
 import com.example.chatserver.dto.ChatDto;
-import com.example.chatserver.dto.WebSocketMessage;
-import com.example.chatserver.dto.WebSocketMessageType;
+import com.example.chatserver.model.UserConnection;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
@@ -11,59 +10,55 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
 @Slf4j
 @Getter
 @RequiredArgsConstructor
 public class ChatRoomManager {
 
-    private final Map<String, WebSocketSession> ActiveUserMap = new ConcurrentHashMap<>();
+    private final Map<String, UserConnection> activeUserMap = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper;
 
-    public void enterChatRoom(ChatDto chatDto, WebSocketSession session) {
-        String username = (String) session.getAttributes().get("email");
-        ActiveUserMap.put(username, session);
-        for(Map.Entry<String, WebSocketSession> entry : ActiveUserMap.entrySet()) {
+    public void enterChatRoom(ChatDto chatDto, UserConnection userConnection) {
+        String userId = userConnection.getUserId();
+        activeUserMap.put(userId, userConnection);
+        for(Map.Entry<String, UserConnection> entry : activeUserMap.entrySet()) {
             try {
-                if (!entry.getKey().equals(username))
-                    entry.getValue().sendMessage(getTextMessage(WebSocketMessageType.ENTER, chatDto));
+                if (!entry.getKey().equals(userId))
+                    entry.getValue().getSession().sendMessage(getTextMessage(chatDto));
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
         }
     }
 
-    public void exitChatRoom(String email, ChatDto chatDto) {
-        ActiveUserMap.remove(chatDto.getUsername());
-        for(Map.Entry<String, WebSocketSession> entry : ActiveUserMap.entrySet()) {
+    public void exitChatRoom(String userId, ChatDto chatDto) {
+        activeUserMap.remove(userId);
+        for (Map.Entry<String, UserConnection> entry : activeUserMap.entrySet()) {
             try {
-                if (!entry.getKey().equals(email))
-                    entry.getValue().sendMessage(getTextMessage(WebSocketMessageType.EXIT, chatDto));
+                if (!entry.getKey().equals(userId))
+                    entry.getValue().getSession().sendMessage(getTextMessage(chatDto));
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
         }
     }
 
-    public void sendMessage(String email, ChatDto chatDto) {
-        for(Map.Entry<String, WebSocketSession> entry : ActiveUserMap.entrySet()) {
+    public void sendMessage(String userId, ChatDto chatDto) {
+        for (Map.Entry<String, UserConnection> entry : activeUserMap.entrySet()) {
             try {
-                if (!entry.getKey().equals(email))
-                    entry.getValue().sendMessage(getTextMessage(WebSocketMessageType.TALK, chatDto));
+                if (!entry.getKey().equals(userId))
+                    entry.getValue().getSession().sendMessage(getTextMessage(chatDto));
             } catch (Exception e) {
                 log.error(e.getMessage());
             }
         }
     }
 
-    private TextMessage getTextMessage(WebSocketMessageType type, ChatDto chatDto) {
+    private TextMessage getTextMessage(ChatDto chatDto) {
         try {
-            return new TextMessage(
-                objectMapper.writeValueAsString(
-                    new WebSocketMessage(type, chatDto)
-                ));
-        }catch (JsonProcessingException e) {
+            return new TextMessage(objectMapper.writeValueAsString(chatDto));
+        } catch (JsonProcessingException e) {
             log.error(e.getMessage());
             throw new RuntimeException(e);
         }

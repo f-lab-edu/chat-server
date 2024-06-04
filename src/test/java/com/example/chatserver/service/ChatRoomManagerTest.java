@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.chatserver.dto.ChatDto;
+import com.example.chatserver.model.UserConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,52 +30,59 @@ public class ChatRoomManagerTest {
 
     @Test
     public void testEnterChatRoom() throws Exception {
-        // Given
-        WebSocketSession session = mock(WebSocketSession.class);
-        when(session.getAttributes()).thenReturn(Map.of("email", "user1@example.com"));
-        ChatDto chatDto = new ChatDto();  // initialize with necessary values
+        //Given
+        WebSocketSession sessionMock = mock(WebSocketSession.class);
+        when(sessionMock.getAttributes()).thenReturn(Map.of("email", "user1@example.com"));
+        UserConnection userConnection = new UserConnection("user1@example.com", sessionMock);
 
-        // Mock another session to see if the message is broadcasted
-        WebSocketSession otherSession = mock(WebSocketSession.class);
-        when(otherSession.getAttributes()).thenReturn(Map.of("email", "user2@example.com"));
-        chatRoomManager.getActiveUserMap().put("user2@example.com", otherSession);
+        ChatDto chatDto = new ChatDto();
+
+        WebSocketSession otherSessionMock = mock(WebSocketSession.class);
+        when(otherSessionMock.getAttributes()).thenReturn(Map.of("email", "user2@example.com"));
+        UserConnection otherUserConnection = new UserConnection("user2@example.com", otherSessionMock);
+        chatRoomManager.getActiveUserMap().put("user2@example.com", otherUserConnection);
 
         // When
-        chatRoomManager.enterChatRoom(chatDto, session);
+        chatRoomManager.enterChatRoom(chatDto, userConnection);
 
         // Then
         assertTrue(chatRoomManager.getActiveUserMap().containsKey("user1@example.com"));
-        verify(session, never()).sendMessage(any());
+        verify(sessionMock, never()).sendMessage(any());
 
         ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
-        verify(otherSession).sendMessage(captor.capture());
+        verify(otherSessionMock).sendMessage(captor.capture());
         assertTrue(captor.getValue().getPayload().contains("ENTER"));
     }
 
     @Test
     public void testExitChatRoom() throws Exception {
         // Given
-        WebSocketSession session = mock(WebSocketSession.class);
+        WebSocketSession sessionMock = mock(WebSocketSession.class);
+        UserConnection userConnection = new UserConnection("user1@example.com", sessionMock);
+
         ChatDto chatDto = new ChatDto();  // initialize with necessary values
         chatDto.setUsername("user1@example.com");
-        chatRoomManager.getActiveUserMap().put("user1@example.com", session);
+        chatRoomManager.getActiveUserMap().put("user1@example.com", userConnection);
 
         // When
         chatRoomManager.exitChatRoom("user1@example.com", chatDto);
 
         // Then
         assertFalse(chatRoomManager.getActiveUserMap().containsKey("user1@example.com"));
-        verify(session, never()).sendMessage(any());
+        verify(sessionMock, never()).sendMessage(any());
     }
 
     @Test
     public void testSendMessage() throws Exception {
         // Given
-        WebSocketSession session1 = mock(WebSocketSession.class);
-        WebSocketSession session2 = mock(WebSocketSession.class);
+        WebSocketSession session1Mock = mock(WebSocketSession.class);
+        WebSocketSession session2Mock = mock(WebSocketSession.class);
 
-        chatRoomManager.getActiveUserMap().put("user1@example.com", session1);
-        chatRoomManager.getActiveUserMap().put("user2@example.com", session2);
+        UserConnection userConnection1 = new UserConnection("user1@example.com", session1Mock);
+        UserConnection userConnection2 = new UserConnection("user2@example.com", session2Mock);
+
+        chatRoomManager.getActiveUserMap().put("user1@example.com", userConnection1);
+        chatRoomManager.getActiveUserMap().put("user2@example.com", userConnection2);
 
         ChatDto chatDto = new ChatDto();  // initialize with necessary values
 
@@ -83,8 +91,8 @@ public class ChatRoomManagerTest {
 
         // Then
         ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
-        verify(session2).sendMessage(captor.capture());
+        verify(session2Mock).sendMessage(captor.capture());
         assertTrue(captor.getValue().getPayload().contains("TALK"));
-        verify(session1, never()).sendMessage(any());
+        verify(session1Mock, never()).sendMessage(any());
     }
 }

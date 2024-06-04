@@ -3,7 +3,7 @@ spring:
     generate-ddl: false
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/chat?characterEncoding=UTF-8&setTimezone=Asia/Seoul
