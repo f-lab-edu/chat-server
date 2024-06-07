@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.WebSocketSession;
 
 @Slf4j
 @Getter
@@ -17,11 +16,8 @@ public class ChatRoomManager {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ChatRoomService chatRoomService;
 
-    public void enter(ChatDto chatDto, WebSocketSession session) {
+    public void enter(ChatDto chatDto, String channel) {
         String username = chatDto.getUsername();
-        String channel = "chatRoom:"+chatDto.getChatRoomId();
-        chatRoomService.subscribe(channel, session);
-
         chatDto.setMessage(username + "님이 입장하셨습니다.");
         chatRoomService.publish(channel, getTextMessage(chatDto));
     }
