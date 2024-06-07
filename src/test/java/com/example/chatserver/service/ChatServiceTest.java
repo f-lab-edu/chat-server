@@ -1,112 +1,78 @@
 package com.example.chatserver.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.example.chatserver.dto.ChatDto;
-import com.example.chatserver.dto.ChatMessageDto;
-import com.example.chatserver.dto.ChatRoomDto;
-import com.example.chatserver.dto.MessageType;
-import com.example.chatserver.model.ChatMessage;
-import com.example.chatserver.model.ChatRoom;
-import com.example.chatserver.repository.ChatMessageRepository;
-import com.example.chatserver.repository.ChatRoomRepository;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.web.socket.WebSocketSession;
 
 public class ChatServiceTest {
 
     @Mock
-    private ChatMessageRepository chatMessageRepository;
+    private ChatRoomService chatRoomService;
 
     @Mock
-    private ChatRoomRepository chatRoomRepository;
+    private WebSocketSession session;
 
     @InjectMocks
-    private ChatService chatService;
+    private ChatRoomManager chatRoomManager;
+
+    private ChatDto chatDto;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        chatDto = new ChatDto();
+        chatDto.setUsername("testUser");
+        chatDto.setChatRoomId(123L);
+        chatDto.setMessage("Hello, World!");
     }
 
     @Test
-    public void testSaveMessage() {
-        // Arrange
-        Long chatRoomId = 1L;
-        String username = "user1";
-        String message = "Hello, world!";
-        ChatDto chatDto = new ChatDto(MessageType.TALK,chatRoomId, username, message);
+    public void testEnter(){
+        // Given
+        String expectedChannel = "chatRoom:123";
+        String expectedMessage = "testUser님이 입장하셨습니다.";
+        doNothing().when(chatRoomService).subscribe(eq(expectedChannel), any(WebSocketSession.class));
 
-        ChatRoom chatRoom = new ChatRoom();
-        ChatRoom.builder().id(chatRoomId).build();
+        // When
+        chatRoomManager.enter(chatDto, session);
 
-        when(chatRoomRepository.findById(chatRoomId)).thenReturn(Optional.of(chatRoom));
-
-        // Act
-        chatService.saveMessage(chatDto);
-
-        // Assert
-        verify(chatMessageRepository, times(1)).save(any());
+        // Then
+        verify(chatRoomService, times(1)).subscribe(eq(expectedChannel), any(WebSocketSession.class));
+        chatDto.setMessage(expectedMessage); // Adjust message after calling enter
+        verify(chatRoomService, times(1)).publish(eq(expectedChannel), eq(getTextMessage(chatDto)));
     }
 
     @Test
-    public void testGetMessages() {
-        // Arrange
-        Long chatRoomId = 1L;
-        ChatMessage chatMessage1 = ChatMessage.builder().message("Message 1").build();
-        ChatMessage chatMessage2 = ChatMessage.builder().message("Message 2").build();
-        List<ChatMessage> expectedMessages = List.of(chatMessage1, chatMessage2);
+    public void testSendMessage(){
+        // Given
+        String expectedChannel = "chatRoom:123";
+        doNothing().when(chatRoomService).publish(eq(expectedChannel), any(String.class));
 
-        when(chatMessageRepository.findTopMessagesByChatRoomId(chatRoomId))
-            .thenReturn(expectedMessages);
+        // When
+        chatRoomManager.sendMessage(chatDto);
 
-        // Act
-        List<ChatMessageDto> actualMessages = chatService.getMessages(chatRoomId);
-
-        // Assert
-        assertEquals(expectedMessages, actualMessages);
+        // Then
+        verify(chatRoomService, times(1)).publish(eq(expectedChannel), eq(getTextMessage(chatDto)));
     }
 
-    @Test
-    public void testCreateChatRoom() {
-        // Arrange
-        String chatRoomName = "Test Room";
-        ChatRoom expectedChatRoom = ChatRoom.builder().name(chatRoomName).build();
-
-        when(chatRoomRepository.save(any(ChatRoom.class))).thenReturn(expectedChatRoom);
-
-        // Act
-        ChatRoom createdChatRoom = chatService.createChatRoom(chatRoomName);
-
-        // Assert
-        assertEquals(expectedChatRoom, createdChatRoom);
-    }
-
-    @Test
-    public void testGetAllChatRooms() {
-        // Arrange
-        ChatRoom chatRoom1 = ChatRoom.builder().name("Room 1").build();
-        ChatRoom chatRoom2 = ChatRoom.builder().name("Room 2").build();
-        List<ChatRoom> expectedChatRooms = new ArrayList<>();
-        expectedChatRooms.add(chatRoom1);
-        expectedChatRooms.add(chatRoom2);
-
-        when(chatRoomRepository.findAll()).thenReturn(expectedChatRooms);
-
-        // Act
-        List<ChatRoomDto> actualChatRooms = chatService.getAllChatRooms();
-
-        // Assert
-        assertEquals(expectedChatRooms, actualChatRooms);
+    private String getTextMessage(ChatDto chatDto) {
+        try {
+            return new ObjectMapper().writeValueAsString(chatDto);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -9,6 +9,10 @@ spring:
     url: jdbc:mysql://localhost:3306/chat?characterEncoding=UTF-8&setTimezone=Asia/Seoul
     username: root
     password: 12
+  data:
+    redis:
+      host: localhost
+      port: 6379
   jwt:
     secret: cc40a3791cf94e649344be45eb1292a2546sdf884d56sf63qwe8mfb
 springdoc:

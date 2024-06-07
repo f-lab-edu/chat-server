@@ -1,98 +1,82 @@
 package com.example.chatserver.service;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.example.chatserver.dto.ChatDto;
-import com.example.chatserver.model.UserConnection;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.web.socket.TextMessage;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.socket.WebSocketSession;
 
+@ExtendWith(MockitoExtension.class)
 public class ChatRoomManagerTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Mock
+    private ChatRoomService chatRoomService;
+
+    @Mock
+    private WebSocketSession session;
+
+    @InjectMocks
     private ChatRoomManager chatRoomManager;
+
+    private ChatDto chatDto;
 
     @BeforeEach
     public void setUp() {
-        chatRoomManager = new ChatRoomManager(objectMapper);
+        chatDto = new ChatDto();
+        chatDto.setUsername("testUser");
+        chatDto.setChatRoomId(123L);
+        chatDto.setMessage("Hello, World!");
     }
 
     @Test
-    public void testEnterChatRoom() throws Exception {
-        //Given
-        WebSocketSession sessionMock = mock(WebSocketSession.class);
-        when(sessionMock.getAttributes()).thenReturn(Map.of("email", "user1@example.com"));
-        UserConnection userConnection = new UserConnection("user1@example.com", sessionMock);
+    public void testEnter(){
+        // Arrange
+        String expectedChannel = "chatRoom:123";
+        String expectedMessage = "testUser님이 입장하셨습니다.";
 
-        ChatDto chatDto = new ChatDto();
+        // Mockito의 any 메서드를 사용하여 임의의 WebSocketSession을 받아들이도록 설정
+        doNothing().when(chatRoomService).subscribe(eq(expectedChannel), any(WebSocketSession.class));
+        doNothing().when(chatRoomService).publish(eq(expectedChannel), any(String.class));
 
-        WebSocketSession otherSessionMock = mock(WebSocketSession.class);
-        when(otherSessionMock.getAttributes()).thenReturn(Map.of("email", "user2@example.com"));
-        UserConnection otherUserConnection = new UserConnection("user2@example.com", otherSessionMock);
-        chatRoomManager.getActiveUserMap().put("user2@example.com", otherUserConnection);
+        // Act
+        chatRoomManager.enter(chatDto, session);
 
-        // When
-        chatRoomManager.enterChatRoom(chatDto, userConnection);
-
-        // Then
-        assertTrue(chatRoomManager.getActiveUserMap().containsKey("user1@example.com"));
-        verify(sessionMock, never()).sendMessage(any());
-
-        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
-        verify(otherSessionMock).sendMessage(captor.capture());
-        assertTrue(captor.getValue().getPayload().contains("ENTER"));
+        // Assert
+        verify(chatRoomService, times(1)).subscribe(eq(expectedChannel), any(WebSocketSession.class));
+        chatDto.setMessage(expectedMessage); // Adjust message after calling enter
+        verify(chatRoomService, times(1)).publish(eq(expectedChannel), eq(getTextMessage(chatDto)));
     }
 
     @Test
-    public void testExitChatRoom() throws Exception {
-        // Given
-        WebSocketSession sessionMock = mock(WebSocketSession.class);
-        UserConnection userConnection = new UserConnection("user1@example.com", sessionMock);
+    public void testSendMessage(){
+        // Arrange
+        String expectedChannel = "chatRoom:123";
 
-        ChatDto chatDto = new ChatDto();  // initialize with necessary values
-        chatDto.setUsername("user1@example.com");
-        chatRoomManager.getActiveUserMap().put("user1@example.com", userConnection);
+        doNothing().when(chatRoomService).publish(eq(expectedChannel), any(String.class));
 
-        // When
-        chatRoomManager.exitChatRoom("user1@example.com", chatDto);
+        // Act
+        chatRoomManager.sendMessage(chatDto);
 
-        // Then
-        assertFalse(chatRoomManager.getActiveUserMap().containsKey("user1@example.com"));
-        verify(sessionMock, never()).sendMessage(any());
+        // Assert
+        verify(chatRoomService, times(1)).publish(eq(expectedChannel), eq(getTextMessage(chatDto)));
     }
 
-    @Test
-    public void testSendMessage() throws Exception {
-        // Given
-        WebSocketSession session1Mock = mock(WebSocketSession.class);
-        WebSocketSession session2Mock = mock(WebSocketSession.class);
-
-        UserConnection userConnection1 = new UserConnection("user1@example.com", session1Mock);
-        UserConnection userConnection2 = new UserConnection("user2@example.com", session2Mock);
-
-        chatRoomManager.getActiveUserMap().put("user1@example.com", userConnection1);
-        chatRoomManager.getActiveUserMap().put("user2@example.com", userConnection2);
-
-        ChatDto chatDto = new ChatDto();  // initialize with necessary values
-
-        // When
-        chatRoomManager.sendMessage("user1@example.com", chatDto);
-
-        // Then
-        ArgumentCaptor<TextMessage> captor = ArgumentCaptor.forClass(TextMessage.class);
-        verify(session2Mock).sendMessage(captor.capture());
-        assertTrue(captor.getValue().getPayload().contains("TALK"));
-        verify(session1Mock, never()).sendMessage(any());
+    private String getTextMessage(ChatDto chatDto) {
+        try {
+            return new ObjectMapper().writeValueAsString(chatDto);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
