@@ -31,7 +31,7 @@ public class SecurityConfig{
             .httpBasic(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests((authorize) -> authorize
-                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/auth/**","/ws/**").permitAll()
                 .requestMatchers( "/swagger-ui/**","/api-docs/**","/api/authenticate").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
