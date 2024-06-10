@@ -31,6 +31,7 @@ public class User extends BaseEntity{
     private String encryptedPassword;
     @Enumerated(EnumType.STRING)
     private Role role;
+    @Builder.Default
     private boolean isDeleted = false;
 
     public void deleted(){
