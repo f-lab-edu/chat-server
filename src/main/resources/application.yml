@@ -6,11 +6,13 @@ spring:
       ddl-auto: update
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
+    #url: jdbc:mysql://localhost:3306/chat?characterEncoding=UTF-8&setTimezone=Asia/Seoul
     url: jdbc:mysql://mysql:3306/chat?characterEncoding=UTF-8&setTimezone=Asia/Seoul
     username: root
     password: 12
   data:
     redis:
+      #host: localhost
       host: redis
       port: 6379
   jwt:

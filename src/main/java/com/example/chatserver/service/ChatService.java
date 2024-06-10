@@ -8,6 +8,7 @@ import com.example.chatserver.model.ChatRoom;
 import com.example.chatserver.repository.ChatMessageRepository;
 import com.example.chatserver.repository.ChatRoomRepository;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,25 @@ public class ChatService {
 
         chatMessageRepository.save(chatMessage);
     }
+    public void saveMessages(List<ChatDto> chatDtos) {
+
+        List<ChatMessage> chatMessages = new ArrayList<>();
+        for (ChatDto chatDto : chatDtos) {
+            ChatRoom chatRoom = chatRoomRepository.findById(chatDto.getChatRoomId())
+                .orElseThrow(IllegalArgumentException::new);
+
+            ChatMessage chatMessage = ChatMessage.builder()
+                .chatRoom(chatRoom)
+                .type(chatDto.getType())
+                .sender(chatDto.getUsername())
+                .message(chatDto.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+            chatMessages.add(chatMessage);
+        }
+        chatMessageRepository.saveAll(chatMessages);
+    }
 
     public List<ChatMessageDto> getMessages(Long chatRoomId) {
         return chatMessageRepository.findTopMessagesByChatRoomId(chatRoomId)
@@ -41,10 +61,11 @@ public class ChatService {
             .collect(Collectors.toList());
     }
 
-    public ChatRoom createChatRoom(String name) {
+    public ChatRoomDto createChatRoom(String name) {
         ChatRoom chatRoom = ChatRoom.builder()
             .name(name).build();
-        return chatRoomRepository.save(chatRoom);
+        chatRoomRepository.save(chatRoom);
+        return ChatRoomDto.from(chatRoom);
     }
 
     public List<ChatRoomDto> getAllChatRooms() {

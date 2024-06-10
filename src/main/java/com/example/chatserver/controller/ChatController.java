@@ -2,7 +2,6 @@ package com.example.chatserver.controller;
 
 import com.example.chatserver.dto.ChatMessageDto;
 import com.example.chatserver.dto.ChatRoomDto;
-import com.example.chatserver.model.ChatRoom;
 import com.example.chatserver.service.ChatService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,7 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping("/room")
-    public ChatRoom createChatRoom(@RequestParam String name) {
+    public ChatRoomDto createChatRoom(@RequestParam String name) {
         return chatService.createChatRoom(name);
     }
 
