@@ -7,7 +7,6 @@ import com.example.chatserver.model.ChatMessage;
 import com.example.chatserver.model.ChatRoom;
 import com.example.chatserver.repository.ChatMessageRepository;
 import com.example.chatserver.repository.ChatRoomRepository;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +30,7 @@ public class ChatService {
             .type(chat.getType())
             .sender(chat.getUsername())
             .message(chat.getMessage())
-            .timestamp(LocalDateTime.now()).build();
+            .timestamp(chat.getTimestamp()).build();
 
         chatMessageRepository.save(chatMessage);
     }
@@ -47,7 +46,7 @@ public class ChatService {
                 .type(chatDto.getType())
                 .sender(chatDto.getUsername())
                 .message(chatDto.getMessage())
-                .timestamp(LocalDateTime.now())
+                .timestamp(chatDto.getTimestamp())
                 .build();
 
             chatMessages.add(chatMessage);
