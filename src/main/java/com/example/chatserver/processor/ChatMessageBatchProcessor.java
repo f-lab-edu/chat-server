@@ -1,6 +1,7 @@
-package com.example.chatserver.service;
+package com.example.chatserver.processor;
 
 import com.example.chatserver.dto.ChatDto;
+import com.example.chatserver.service.ChatService;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ChatMessageBatcher {
+public class ChatMessageBatchProcessor {
 
     private final Lock lock = new ReentrantLock();
     private final ChatService chatService;
@@ -30,7 +31,7 @@ public class ChatMessageBatcher {
     }
 
     @Scheduled(fixedRate = 5000)
-    private void saveMessages() {
+    protected void saveMessages() {
         List<ChatDto> messageToSave;
         lock.lock();
         log.info("scheduling save messages");

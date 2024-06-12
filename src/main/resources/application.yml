@@ -17,6 +17,13 @@ spring:
       port: 6379
   jwt:
     secret: cc40a3791cf94e649344be45eb1292a2546sdf884d56sf63qwe8mfb
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: log-consumers
+      auto-offset-reset: earliest
+    template:
+      default-topic: logs
 springdoc:
   swagger-ui:
     groups-order: DESC

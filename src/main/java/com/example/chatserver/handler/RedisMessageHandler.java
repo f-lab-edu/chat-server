@@ -1,7 +1,7 @@
 package com.example.chatserver.handler;
 
 import com.example.chatserver.dto.ChatDto;
-import com.example.chatserver.service.ChatMessageBatcher;
+import com.example.chatserver.processor.ChatMessageBatchProcessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.web.socket.WebSocketSession;
 public class RedisMessageHandler implements MessageListener {
     private final WebSocketSession session;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ChatMessageBatcher chatMessageBatcher;
+    private final ChatMessageBatchProcessor chatMessageBatchProcessor;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -23,7 +23,7 @@ public class RedisMessageHandler implements MessageListener {
             ChatDto chatDto = objectMapper.readValue(message.getBody(), ChatDto.class);
             if(session.isOpen() && !chatDto.getUsername().equals(session.getAttributes().get("username"))){
                 session.sendMessage(new TextMessage(new String(message.getBody())));
-                chatMessageBatcher.addMessage(chatDto);
+                chatMessageBatchProcessor.addMessage(chatDto);
             }
         } catch (Exception e) {
             log.error(e.getMessage());
