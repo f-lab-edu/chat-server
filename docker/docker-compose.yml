@@ -1,0 +1,54 @@
+version: '1'
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 12
+      MYSQL_DATABASE: chat
+    ports:
+      - "3306:3306"
+    networks:
+      - chat
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - chat
+
+  my-server-1:
+    image: my-server1:1.0.0
+    container_name: server_1
+    ports:
+      - "8080:8080"
+    networks:
+      - chat
+
+  my-server-2:
+    image: my-server2:1.0.0
+    container_name: server_2
+    ports:
+      - "8081:8081"
+    networks:
+      - chat
+
+  my-server-3:
+    image: my-server3:1.0.0
+    container_name: server_3
+    ports:
+      - "8082:8082"
+    networks:
+      - chat
+
+  nginx:
+    image: nginx:1.0.0
+    container_name: nginx
+    ports:
+      - "80:80"
+    networks:
+      - chat
+
+networks:
+  chat:
+    driver: bridge

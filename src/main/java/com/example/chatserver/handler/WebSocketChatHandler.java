@@ -1,6 +1,7 @@
 package com.example.chatserver.handler;
 
 import com.example.chatserver.dto.ChatDto;
+import com.example.chatserver.service.ChatMessageBatcher;
 import com.example.chatserver.service.ChatRoomManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,6 +22,7 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
     private final ChatRoomManager chatRoomManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final StringRedisTemplate stringRedisTemplate;
+    private final ChatMessageBatcher chatMessageBatcher;
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws JsonProcessingException {
@@ -45,12 +47,9 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
     }
 
     private void subscribe(String channel, WebSocketSession session) {
+        RedisMessageHandler messageHandler = new RedisMessageHandler(session, chatMessageBatcher);
         Objects.requireNonNull(stringRedisTemplate.getConnectionFactory())
             .getConnection()
-            .subscribe(getMessageHandler(session), channel.getBytes());
-    }
-
-    private RedisMessageHandler getMessageHandler(WebSocketSession session) {
-        return new RedisMessageHandler(session);
+            .subscribe(messageHandler, channel.getBytes());
     }
 }

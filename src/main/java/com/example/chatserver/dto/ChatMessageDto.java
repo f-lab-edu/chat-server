@@ -1,7 +1,7 @@
 package com.example.chatserver.dto;
 
 import com.example.chatserver.model.ChatMessage;
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,7 +16,7 @@ public class ChatMessageDto {
 
     private String message;
 
-    private LocalDateTime timestamp;
+    private Timestamp timestamp;
 
     public static ChatMessageDto from(ChatMessage chatMessage) {
         return ChatMessageDto.builder()
