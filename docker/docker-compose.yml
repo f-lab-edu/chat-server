@@ -10,12 +10,75 @@ services:
     networks:
       - chat
 
-  redis:
-    image: redis:latest
+  redis-1:
+    image: redis:1.0.0
+    container_name: redis-1
     ports:
       - "6379:6379"
     networks:
       - chat
+      - redis-net
+  redis-2:
+    image: redis:1.0.0
+    container_name: redis-2
+    ports:
+      - "6380:6379"
+    networks:
+      - chat
+      - redis-net
+  redis-3:
+    image: redis:1.0.0
+    container_name: redis-3
+    ports:
+      - "6381:6379"
+    networks:
+      - chat
+      - redis-net
+  redis-4:
+    image: redis:1.0.0
+    container_name: redis-4
+    ports:
+      - "6382:6379"
+    networks:
+      - chat
+      - redis-net
+  redis-5:
+    image: redis:1.0.0
+    container_name: redis-5
+    ports:
+      - "6383:6379"
+    networks:
+      - chat
+      - redis-net
+  redis-6:
+    image: redis:1.0.0
+    container_name: redis-6
+    ports:
+      - "6384:6379"
+    networks:
+      - chat
+      - redis-net
+  redis-init:
+    image: redis:latest
+    container_name: redis-init
+    depends_on:
+      - redis-1
+      - redis-2
+      - redis-3
+      - redis-4
+      - redis-5
+      - redis-6
+    entrypoint: [ "sh", "-c", "echo 'yes' | redis-cli --cluster create \
+          redis-1:6379 \
+          redis-2:6379 \
+          redis-3:6379 \
+          redis-4:6379 \
+          redis-5:6379 \
+          redis-6:6379 \
+          --cluster-replicas 1" ]
+    networks:
+      - chat
+      - redis-net
 
   my-server-1:
     image: my-server1:1.0.0
@@ -108,4 +171,6 @@ networks:
   chat:
     driver: bridge
   elk:
+    driver: bridge
+  redis-net:
     driver: bridge
