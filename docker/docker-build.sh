@@ -24,3 +24,7 @@ echo 'api3 docker image build... Finish'
 echo 'nginx docker image build... Start'
 cd "$ROOT_PATH"/nginx && docker build -t nginx:$VERSION .
 echo 'nginx docker image build... Finish'
+
+echo 'logstash docker image build... Start'
+cd "$ROOT_PATH"/logstash && docker build -t logstash:$VERSION .
+echo 'logstash docker image build... Finish'
