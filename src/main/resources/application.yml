@@ -12,9 +12,16 @@ spring:
     password: 12
   data:
     redis:
+      cluster:
+        nodes:
+          - redis-1:6379
+          - redis-2:6380
+          - redis-3:6381
+          - redis-4:6382
+          - redis-5:6383
+          - redis-6:6384
       #host: localhost
-      host: redis
-      port: 6379
+      #port: 6379
   jwt:
     secret: cc40a3791cf94e649344be45eb1292a2546sdf884d56sf63qwe8mfb
   kafka:
