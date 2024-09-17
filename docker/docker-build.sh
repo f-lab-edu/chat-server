@@ -28,3 +28,7 @@ echo 'nginx docker image build... Finish'
 echo 'logstash docker image build... Start'
 cd "$ROOT_PATH"/logstash && docker build -t logstash:$VERSION .
 echo 'logstash docker image build... Finish'
+
+echo 'redis docker image build... Start'
+cd "$ROOT_PATH"/redis && docker build -t redis:$VERSION .
+echo 'redis docker image build... Finish'
