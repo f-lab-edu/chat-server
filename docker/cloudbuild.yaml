@@ -21,9 +21,6 @@ steps:
       - CLOUDSDK_COMPUTE_ZONE=asia-northeast3
       - CLOUDSDK_CONTAINER_CLUSTER=autoilot-cluster-1
 
-# 로그 버킷 설정 예시
-logsBucket: "gs://your-logs-bucket"
-
 # Cloud Logging 사용 설정
 options:
   logging: CLOUD_LOGGING_ONLY
