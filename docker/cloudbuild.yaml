@@ -1,0 +1,27 @@
+steps:
+  - name: docker/compose:1.29.0
+    args:
+      - -f
+      - docker-compose.yml
+      - build
+
+  - name: docker/compose:1.29.0
+    args:
+      - -f
+      - docker-compose.yml
+      - push
+
+  - name: gcr.io/cloud-builders/kubectl
+    args:
+      - set
+      - image
+      - deployment/snsteam-backend-api-resource
+      - team-sha256-1=asia.gcr.io/evocative-tube-352516/team:2.50
+    env:
+      - CLOUDSDK_COMPUTE_ZONE=asia-northeast3
+      - CLOUDSDK_CONTAINER_CLUSTER=autoilot-cluster-1
+
+# Cloud Logging 사용 설정
+options:
+  logging: CLOUD_LOGGING_ONLY
+
